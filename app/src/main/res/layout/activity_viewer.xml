@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <org.webrtc.SurfaceViewRenderer
+        android:id="@+id/remoteRenderer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/motionBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@color/accent_red"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:padding="14dp"
+        android:textAlignment="center"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="110dp"
+        android:background="#88000000"
+        android:textColor="#FFFFFF"
+        android:padding="8dp"
+        android:text="Connecting…"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:background="#CC000000"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/talkButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Talk"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_bg"
+            android:backgroundTint="@color/accent_green"/>
+
+        <Button
+            android:id="@+id/sirenButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="🔊 Sound Siren"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_bg"
+            android:backgroundTint="@color/accent_red"/>
+    </LinearLayout>
+
+</FrameLayout>
