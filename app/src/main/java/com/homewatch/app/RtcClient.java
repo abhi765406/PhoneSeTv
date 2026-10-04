@@ -80,7 +80,7 @@ public class RtcClient {
         this.eglBase = EglBase.create();
 
         PeerConnectionFactory.InitializationOptions initOptions =
-                new PeerConnectionFactory.InitializationOptions.Builder(this.appContext)
+                 PeerConnectionFactory.InitializationOptions.builder(this.appContext)
                         .setEnableInternalTracer(false)
                         .createInitializationOptions();
         PeerConnectionFactory.initialize(initOptions);
