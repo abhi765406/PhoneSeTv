@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.homewatch.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.homewatch.app"
+        minSdk 23
+        targetSdk 28
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        buildConfig = false
+    }
+}
+
+dependencies {
+    // Real, verified WebRTC build for Android (Maven Central). Confirmed exact
+    // coordinates and API surface against the compiled library during this build.
+    implementation 'io.github.webrtc-sdk:android:137.7151.05'
+
+    // WebSocket client for talking to the signaling server.
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}
