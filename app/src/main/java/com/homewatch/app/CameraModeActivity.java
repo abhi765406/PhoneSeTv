@@ -20,6 +20,9 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
     public static final String EXTRA_ROOM_CODE = "room_code";
     public static final String EXTRA_DISPLAY_NAME = "display_name";
 
+    private Button muteMicButton;
+    
+private boolean micMuted = false;
     private SurfaceViewRenderer localRenderer;
     private TextView statusText;
     private TextView roomCodeText;
@@ -46,7 +49,9 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
         roomCodeText = findViewById(R.id.roomCodeText);
         motionCountText = findViewById(R.id.motionCountText);
         armToggleButton = findViewById(R.id.armToggleButton);
+        muteMicButton = findViewById(R.id.muteMicButton);
         sensitivitySeekBar = findViewById(R.id.sensitivitySeekBar);
+        
 
         roomCodeText.setText("Room code: " + roomCode);
 
@@ -57,6 +62,7 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
         updateArmButton();
 
         armToggleButton.setOnClickListener(v -> toggleArmed());
+        muteMicButton.setOnClickListener(v -> toggleMicMute());
         sensitivitySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
@@ -128,6 +134,16 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
             motionCountText.setText("Motion events this session: " + motionCount);
             Toast.makeText(this, "Motion detected - siren sounded, snapshot saved", Toast.LENGTH_SHORT).show();
         });
+
+        private void toggleMicMute() {
+    if (rendererOwner == null) {
+        Toast.makeText(this, "Still starting up - try again in a moment", Toast.LENGTH_SHORT).show();
+        return;
+    }
+    micMuted = !micMuted;
+    rendererOwner.setMicEnabled(!micMuted);
+    muteMicButton.setText(micMuted ? "Unmute This Phone's Mic" : "Mute This Phone's Mic");
+}
     }
 
     @Override
