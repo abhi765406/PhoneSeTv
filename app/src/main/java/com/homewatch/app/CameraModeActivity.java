@@ -20,20 +20,19 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
     public static final String EXTRA_ROOM_CODE = "room_code";
     public static final String EXTRA_DISPLAY_NAME = "display_name";
 
-    private Button muteMicButton;
-    
-private boolean micMuted = false;
     private SurfaceViewRenderer localRenderer;
     private TextView statusText;
     private TextView roomCodeText;
     private TextView motionCountText;
     private Button armToggleButton;
+    private Button muteMicButton;
     private SeekBar sensitivitySeekBar;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private RtcClient rendererOwner; // used only to call initRenderer with the service's EGL context
+    private RtcClient rendererOwner; // also used to control this phone's own mic
     private String roomCode;
     private boolean armed = false;
+    private boolean micMuted = false;
     private int motionCount = 0;
 
     @Override
@@ -51,7 +50,6 @@ private boolean micMuted = false;
         armToggleButton = findViewById(R.id.armToggleButton);
         muteMicButton = findViewById(R.id.muteMicButton);
         sensitivitySeekBar = findViewById(R.id.sensitivitySeekBar);
-        
 
         roomCodeText.setText("Room code: " + roomCode);
 
@@ -99,6 +97,16 @@ private boolean micMuted = false;
         updateArmButton();
     }
 
+    private void toggleMicMute() {
+        if (rendererOwner == null) {
+            Toast.makeText(this, "Still starting up - try again in a moment", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        micMuted = !micMuted;
+        rendererOwner.setMicEnabled(!micMuted);
+        muteMicButton.setText(micMuted ? "Unmute This Phone's Mic" : "Mute This Phone's Mic");
+    }
+
     private void updateArmButton() {
         armToggleButton.setText(armed ? "Disarm" : "Arm (enable motion alerts)");
     }
@@ -134,16 +142,6 @@ private boolean micMuted = false;
             motionCountText.setText("Motion events this session: " + motionCount);
             Toast.makeText(this, "Motion detected - siren sounded, snapshot saved", Toast.LENGTH_SHORT).show();
         });
-
-        private void toggleMicMute() {
-    if (rendererOwner == null) {
-        Toast.makeText(this, "Still starting up - try again in a moment", Toast.LENGTH_SHORT).show();
-        return;
-    }
-    micMuted = !micMuted;
-    rendererOwner.setMicEnabled(!micMuted);
-    muteMicButton.setText(micMuted ? "Unmute This Phone's Mic" : "Mute This Phone's Mic");
-}
     }
 
     @Override
