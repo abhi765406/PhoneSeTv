@@ -26,13 +26,15 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
     private TextView motionCountText;
     private Button armToggleButton;
     private Button muteMicButton;
+    private Button switchCameraButton;
     private SeekBar sensitivitySeekBar;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private RtcClient rendererOwner; // also used to control this phone's own mic
+    private RtcClient rendererOwner; // also used to control this phone's own mic + camera
     private String roomCode;
     private boolean armed = false;
     private boolean micMuted = false;
+    private boolean isFrontCamera = false; // CameraForegroundService starts on the back camera
     private int motionCount = 0;
 
     @Override
@@ -49,6 +51,7 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
         motionCountText = findViewById(R.id.motionCountText);
         armToggleButton = findViewById(R.id.armToggleButton);
         muteMicButton = findViewById(R.id.muteMicButton);
+        switchCameraButton = findViewById(R.id.switchCameraButton);
         sensitivitySeekBar = findViewById(R.id.sensitivitySeekBar);
 
         roomCodeText.setText("Room code: " + roomCode);
@@ -61,6 +64,7 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
 
         armToggleButton.setOnClickListener(v -> toggleArmed());
         muteMicButton.setOnClickListener(v -> toggleMicMute());
+        switchCameraButton.setOnClickListener(v -> onSwitchCameraClicked());
         sensitivitySeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
@@ -98,13 +102,43 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
     }
 
     private void toggleMicMute() {
+        boolean newMuted = !micMuted;
+        Intent intent = new Intent(this, CameraForegroundService.class);
+        intent.setAction(CameraForegroundService.ACTION_SET_MUTED);
+        intent.putExtra(CameraForegroundService.EXTRA_MUTED, newMuted);
+        startService(intent);
+        // Don't flip micMuted or the button text here - wait for onMicMuteChanged from the
+        // service, so this screen always reflects the real state even if a remote mute
+        // command arrives at the same moment.
+    }
+
+    private void onSwitchCameraClicked() {
         if (rendererOwner == null) {
             Toast.makeText(this, "Still starting up - try again in a moment", Toast.LENGTH_SHORT).show();
             return;
         }
-        micMuted = !micMuted;
-        rendererOwner.setMicEnabled(!micMuted);
-        muteMicButton.setText(micMuted ? "Unmute This Phone's Mic" : "Mute This Phone's Mic");
+        switchCameraButton.setEnabled(false);
+        rendererOwner.switchCamera(new RtcClient.CameraSwitchListener() {
+            @Override
+            public void onSwitched(boolean isFrontCameraNow) {
+                mainHandler.post(() -> {
+                    isFrontCamera = isFrontCameraNow;
+                    localRenderer.setMirror(isFrontCameraNow); // selfie-style mirror only makes sense on the front camera
+                    switchCameraButton.setText(isFrontCameraNow
+                            ? "🔄 Switch to Back Camera"
+                            : "🔄 Switch to Front Camera");
+                    switchCameraButton.setEnabled(true);
+                });
+            }
+
+            @Override
+            public void onSwitchFailed(String error) {
+                mainHandler.post(() -> {
+                    Toast.makeText(CameraModeActivity.this, "Couldn't switch camera: " + error, Toast.LENGTH_SHORT).show();
+                    switchCameraButton.setEnabled(true);
+                });
+            }
+        });
     }
 
     private void updateArmButton() {
@@ -142,6 +176,13 @@ public class CameraModeActivity extends Activity implements CameraForegroundServ
             motionCountText.setText("Motion events this session: " + motionCount);
             Toast.makeText(this, "Motion detected - siren sounded, snapshot saved", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    @Override
+    public void onMicMuteChanged(boolean muted) {
+        micMuted = muted;
+        mainHandler.post(() -> muteMicButton.setText(
+                muted ? "Unmute This Phone's Mic" : "Mute This Phone's Mic"));
     }
 
     @Override
