@@ -226,7 +226,30 @@ public class RtcClient {
     public void setMicEnabled(boolean enabled) {
         if (localAudioTrack != null) localAudioTrack.setEnabled(enabled);
     }
+    public interface CameraSwitchListener {
+        void onSwitched(boolean isFrontCameraNow);
+        void onSwitchFailed(String error);
+    }
 
+    /** Flips between front and back camera live, mid-call, with no renegotiation needed. */
+    public void switchCamera(CameraSwitchListener listener) {
+        if (!(cameraCapturer instanceof CameraVideoCapturer)) {
+            if (listener != null) listener.onSwitchFailed("This device only has one usable camera");
+            return;
+        }
+        ((CameraVideoCapturer) cameraCapturer).switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
+            @Override
+            public void onCameraSwitchDone(boolean isFrontCamera) {
+                if (listener != null) listener.onSwitched(isFrontCamera);
+            }
+
+            @Override
+            public void onCameraSwitchError(String error) {
+                Log.e(TAG, "Camera switch failed: " + error);
+                if (listener != null) listener.onSwitchFailed(error);
+            }
+        });
+    }
     public void close() {
         try {
             if (cameraCapturer != null) {
